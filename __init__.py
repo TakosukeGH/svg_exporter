@@ -1,10 +1,10 @@
 bl_info= {
-    "name": "PMX Exporter",
+    "name": "SVG Exporter",
     "author": "Takosuke",
-    "version": (0, 1, 1),
-    "blender": (2, 74, 0),
+    "version": (0, 0, 1),
+    "blender": (2, 79, 0),
     "location": "Properties",
-    "description": "Export PMX file.",
+    "description": "Export SVG file.",
     "support": "COMMUNITY",
     "warning": "",
     "wiki_url": "",
@@ -14,23 +14,14 @@ bl_info= {
 if "bpy" in locals():
     import imp
     imp.reload(properties)
-    imp.reload(tools)
     imp.reload(exporter)
-    imp.reload(structs)
-    imp.reload(const)
-    imp.reload(logutils)
-    imp.reload(fileutils)
-    imp.reload(meshutils)
-    imp.reload(checker)
-    imp.reload(nameutils)
-    imp.reload(init_project)
 else:
-    from . import properties, tools, exporter, structs, const, logutils, checker, nameutils, fileutils, init_project
+    from . import properties, exporter
 
 import bpy
 import logging
 
-logger = logging.getLogger("pmx_exporter")
+logger = logging.getLogger("svg_exporter")
 
 if not logger.handlers:
     hdlr = logging.StreamHandler()
@@ -44,10 +35,8 @@ logger.debug("init logger") # debug, info, warning, error, critical
 def register():
     bpy.utils.register_module(__name__)
     properties.register()
-    tools.register()
 
 def unregister():
-    tools.unregister()
     properties.unregister()
     bpy.utils.unregister_module(__name__)
 
