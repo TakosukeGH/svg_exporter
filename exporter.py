@@ -103,16 +103,7 @@ class SvgExporter(bpy.types.Operator):
             bpy.context.scene.objects.link(dobj)
 
             if mod.use_constant_offset:
-                dobj.location = mathutils.Vector(obj.location) + mathutils.Vector(mod.constant_offset_displace) * i
-
-            # if mod.use_relative_offset:
-            #     dobj.location = mathutils.Vector(obj.location) + mathutils.Vector(x * y for x, y in zip(obj.dimensions, mod.relative_offset_displace)) * i
-            #     logger.debug(dobj.location)
-
-            if mod.use_object_offset:
-                offset_obj = mod.offset_object
-                dobj.location = mathutils.Vector(obj.location) + (mathutils.Vector(offset_obj.location) - mathutils.Vector(obj.location)) * i
-                # dobj.rotation_euler = mathutils.Vector(obj.rotation_euler) + (mathutils.Vector(offset_obj.rotation_euler) - mathutils.Vector(obj.rotation_euler)) * i
+                dobj.location = mathutils.Vector(dobj.location) + mathutils.Vector(mod.constant_offset_displace) * i
 
             bpy.context.scene.update()
 
