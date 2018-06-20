@@ -22,7 +22,60 @@ class SVGSceneProperties(PropertyGroup):
     slide = FloatProperty(name="Slide", step=10, default=0.1)
     use_background = BoolProperty(name="Use backGround", default=False)
     background_color = FloatVectorProperty(name="Background Color", subtype='COLOR', size=4, min=0, max=1, default=[0.8, 0.8, 0.8, 0.8])
+    script_is_executed = BoolProperty(default=False)
 
+# Operator
+class InitProjectOperator(bpy.types.Operator):
+    bl_idname = "svg.init_project_operator"
+    bl_label = "Init Project"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def invoke(self, context, event):
+        logger.info("start")
+
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        self.screen_setting(context)
+        self.scene_setting(context.scene)
+        self.area_setting()
+
+        context.scene.svg_scene_properties.script_is_executed = True
+
+        logger.info("end")
+
+        return {'FINISHED'}
+
+    def screen_setting(self, context):
+        screens = bpy.data.screens
+
+        screen_names = ["3D View Full", "Game Logic", "Motion Tracking", "Video Editing"]
+
+        for screen_name in screen_names:
+            if screen_name in screens:
+                bpy.ops.screen.delete({'screen': screens[screen_name]})
+
+        context.window.screen = screens['Default']
+
+    def scene_setting(self, scene):
+        scene.render.engine = 'CYCLES'
+
+    def area_setting(self):
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    override = bpy.context.copy()
+                    override["window"] = bpy.context.window
+                    override["screen"] = screen
+                    override["area"] = area
+                    bpy.ops.view3d.view_persportho(override)
+                    bpy.ops.view3d.viewnumpad(override, type='TOP')
+
+                    logger.debug("area_setting in:" + screen.name)
+
+                    for space in area.spaces:
+                        space.use_occlude_geometry = False
+                        # space.lens = 50
 
 # UI
 class SVGToolPanel(Panel):
@@ -38,7 +91,12 @@ class SVGToolPanel(Panel):
         layout = self.layout
 
         row = layout.row()
+        row.operator(InitProjectOperator.bl_idname, text=pgettext(InitProjectOperator.bl_label))
 
+        if svg_scene_properties.script_is_executed:
+            row.enabled = False
+
+        row = layout.row()
         if svg_scene_properties.draw_area is False:
             icon = 'PLAY'
             txt = 'Display border'
@@ -81,18 +139,18 @@ class SVGToolPanel(Panel):
         col.operator(ResetObject.bl_idname, icon='X')
 
         layout.row().separator()
-        
+
         if context.object is not None:
             obj = context.object
             if obj.type == 'CURVE':
                 row = layout.row()
                 row.prop(obj.data, "resolution_u")
-            if len(obj.data.materials) > 0:
-                mat = obj.data.materials[0]
-                col = layout.column(align=True)
-                col.label("Viewport Color:")
-                col.prop(mat, "diffuse_color", text="")
-                col.prop(mat, "alpha")
+                if len(obj.data.materials) > 0:
+                    mat = obj.data.materials[0]
+                    col = layout.column(align=True)
+                    col.label("Viewport Color:")
+                    col.prop(mat, "diffuse_color", text="")
+                    col.prop(mat, "alpha")
 
         layout.row().separator()
 

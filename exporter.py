@@ -16,6 +16,7 @@ class SvgExporter(bpy.types.Operator):
         logger.info("start")
 
         self.objs = []
+        self.duplicate_objs = []
 
         logger.info("end")
 
@@ -35,9 +36,11 @@ class SvgExporter(bpy.types.Operator):
             rect = self.svg.rect(insert=(-width/2, -height/2), size=('100%', '100%'), rx=None, ry=None, fill=self.get_color(background_color), opacity=background_color[3])
             self.svg.add(rect)
 
-        self.get_objects()
-        self.sort_objects()
-        self.add_objects_data()
+        with Cleaner() as cleaner:
+            self.get_objects()
+            self.duplicate_objects(cleaner)
+            self.sort_objects()
+            self.add_objects_data()
 
         self.svg.save()
 
@@ -70,6 +73,52 @@ class SvgExporter(bpy.types.Operator):
                 return
 
             self.objs.append(obj)
+
+    def duplicate_objects(self, cleaner):
+        for obj in self.objs[:]:
+            if len(obj.modifiers) <= 0:
+                continue
+
+            mod = obj.modifiers[0]
+            if mod.type != 'ARRAY':
+                continue
+
+            if mod.show_viewport is False:
+                continue
+
+            if mod.count <= 1:
+                continue
+
+            # if not mod.use_constant_offset and not mod.use_relative_offset and not mod.use_object_offset:
+            if not mod.use_constant_offset and not mod.use_object_offset:
+                continue
+
+            # self.duplicate_objs.append(obj)
+            self.duplicate_object(obj, mod, cleaner)
+
+    def duplicate_object(self, obj, mod, cleaner):
+        for i in range(1, mod.count):
+            dobj = obj.copy()
+            dobj.data = obj.data.copy()
+            bpy.context.scene.objects.link(dobj)
+
+            if mod.use_constant_offset:
+                dobj.location = mathutils.Vector(obj.location) + mathutils.Vector(mod.constant_offset_displace) * i
+
+            # if mod.use_relative_offset:
+            #     dobj.location = mathutils.Vector(obj.location) + mathutils.Vector(x * y for x, y in zip(obj.dimensions, mod.relative_offset_displace)) * i
+            #     logger.debug(dobj.location)
+
+            if mod.use_object_offset:
+                offset_obj = mod.offset_object
+                dobj.location = mathutils.Vector(obj.location) + (mathutils.Vector(offset_obj.location) - mathutils.Vector(obj.location)) * i
+                # dobj.rotation_euler = mathutils.Vector(obj.rotation_euler) + (mathutils.Vector(offset_obj.rotation_euler) - mathutils.Vector(obj.rotation_euler)) * i
+
+            bpy.context.scene.update()
+
+            self.objs.append(dobj)
+            # self.duplicate_objs.append(dobj)
+            cleaner.throw_away(dobj)
 
     def sort_objects(self):
         self.objs.sort(key=lambda obj: obj.location[2])
@@ -167,7 +216,20 @@ class SVGPath():
         w.resize_3d()
         return w
 
+class Cleaner():
+    def __init__(self):
+        self.delete_objs = []
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        for obj in self.delete_objs:
+            bpy.data.objects.remove(obj, True)
+        return isinstance(exc_value, TypeError)
+
+    def throw_away(self, obj):
+        self.delete_objs.append(obj)
 
 
 
