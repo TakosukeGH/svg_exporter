@@ -164,7 +164,11 @@ class AddCurveTool(Operator):
     bl_label = "Add curve"
 
     def invoke(self, context, event):
-        bpy.ops.curve.primitive_bezier_circle_add(location=(0.0, 0.0, 0.0))
+        loc=(0.0, 0.0, 0.0)
+        if len(context.selected_objects) > 0:
+            loc = (context.object.location[0], context.object.location[1], context.object.location[2] + 0.1)
+
+        bpy.ops.curve.primitive_bezier_circle_add(location=loc)
         obj = context.object
 
         obj.lock_location[2] = True

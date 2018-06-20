@@ -38,7 +38,8 @@ class SvgExporter(bpy.types.Operator):
 
         with Cleaner() as cleaner:
             self.get_objects()
-            self.duplicate_objects(cleaner)
+            for i in range(2):
+                self.duplicate_objects(cleaner, i)
             self.sort_objects()
             self.add_objects_data()
 
@@ -74,12 +75,12 @@ class SvgExporter(bpy.types.Operator):
 
             self.objs.append(obj)
 
-    def duplicate_objects(self, cleaner):
+    def duplicate_objects(self, cleaner, index):
         for obj in self.objs[:]:
-            if len(obj.modifiers) <= 0:
+            if len(obj.modifiers) <= index:
                 continue
 
-            mod = obj.modifiers[0]
+            mod = obj.modifiers[index]
             if mod.type != 'ARRAY':
                 continue
 
@@ -90,7 +91,7 @@ class SvgExporter(bpy.types.Operator):
                 continue
 
             # if not mod.use_constant_offset and not mod.use_relative_offset and not mod.use_object_offset:
-            if not mod.use_constant_offset and not mod.use_object_offset:
+            if not mod.use_constant_offset:
                 continue
 
             # self.duplicate_objs.append(obj)
