@@ -43,7 +43,9 @@ class SvgExporter(bpy.types.Operator):
             self.sort_objects()
             self.add_objects_data()
 
+        logger.debug("save: start")
         self.svg.save()
+        logger.debug("save: end")
 
         logger.info("end")
 
