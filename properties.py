@@ -23,6 +23,7 @@ class SVGSceneProperties(PropertyGroup):
     use_background = BoolProperty(name="Use backGround", default=False)
     background_color = FloatVectorProperty(name="Background Color", subtype='COLOR', size=4, min=0, max=1, default=[0.8, 0.8, 0.8, 0.8])
     script_is_executed = BoolProperty(default=False)
+    lock_init_project = BoolProperty(default=False)
 
 # Operator
 class InitProjectOperator(bpy.types.Operator):
@@ -90,11 +91,22 @@ class SVGToolPanel(Panel):
 
         layout = self.layout
 
-        row = layout.row()
-        row.operator(InitProjectOperator.bl_idname, text=pgettext(InitProjectOperator.bl_label))
+        split = layout.split(percentage=0.85)
+        col = split.column()
+        col.operator(InitProjectOperator.bl_idname, text=pgettext(InitProjectOperator.bl_label))
+
+        if svg_scene_properties.lock_init_project:
+            col.enabled = False
+
+        col = split.column()
+        if svg_scene_properties.lock_init_project:
+            icon = 'LOCKED'
+        else:
+            icon = 'UNLOCKED'
+        col.prop(svg_scene_properties, "lock_init_project", text="", icon=icon)
 
         if svg_scene_properties.script_is_executed:
-            row.enabled = False
+            split.enabled = False
 
         row = layout.row()
         if svg_scene_properties.draw_area is False:
