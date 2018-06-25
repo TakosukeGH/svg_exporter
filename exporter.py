@@ -11,6 +11,10 @@ logger = logging.getLogger("svg_exporter")
 class SvgExporter(bpy.types.Operator):
     bl_idname = "svg.exporter"
     bl_label = "Export SVG"
+    location_matrix = mathutils.Matrix((
+        [1.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0],
+        [0.0, 0.0, 1.0]))
 
     def __init__(self):
         logger.info("start")
@@ -159,7 +163,7 @@ class SvgExporter(bpy.types.Operator):
     def duplicate_by_array_modifire(self, id, mod, uses):
         for use in uses[:]:
             for i in range(1, mod.count):
-                duplicate_use = SVGUse(id, use.get_location() + mathutils.Vector(mod.constant_offset_displace) * i * self.scale)
+                duplicate_use = SVGUse(id, use.get_location() + mathutils.Vector(mod.constant_offset_displace) * self.location_matrix * i * self.scale)
                 logger.debug(duplicate_use.get_location())
                 uses.append(duplicate_use)
 
