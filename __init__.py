@@ -3,13 +3,13 @@ bl_info= {
     "author": "Takosuke",
     "version": (0, 0, 1),
     "blender": (2, 79, 0),
-    "location": "Properties",
+    "location": "View3D > Tools Panel",
     "description": "Export SVG file.",
     "support": "COMMUNITY",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
-    "category": 'Object'}
+    "category": 'Import-Export'}
 
 if "bpy" in locals():
     import imp

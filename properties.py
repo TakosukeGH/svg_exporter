@@ -89,24 +89,13 @@ class SVGToolPanel(Panel):
     def draw(self, context):
         svg_scene_properties = context.scene.svg_scene_properties
 
+        if not svg_scene_properties.script_is_executed:
+            row = self.layout.row()
+            row.scale_y = 2.0
+            row.operator(InitProjectOperator.bl_idname, text=pgettext(InitProjectOperator.bl_label), icon='LOAD_FACTORY')
+            return
+
         layout = self.layout
-
-        split = layout.split(percentage=0.85)
-        col = split.column()
-        col.operator(InitProjectOperator.bl_idname, text=pgettext(InitProjectOperator.bl_label))
-
-        if svg_scene_properties.lock_init_project:
-            col.enabled = False
-
-        col = split.column()
-        if svg_scene_properties.lock_init_project:
-            icon = 'LOCKED'
-        else:
-            icon = 'UNLOCKED'
-        col.prop(svg_scene_properties, "lock_init_project", text="", icon=icon)
-
-        if svg_scene_properties.script_is_executed:
-            split.enabled = False
 
         row = layout.row()
         if svg_scene_properties.draw_area is False:
@@ -163,6 +152,10 @@ class SVGToolPanel(Panel):
                     col.label("Viewport Color:")
                     col.prop(mat, "diffuse_color", text="")
                     col.prop(mat, "alpha")
+
+        col = layout.column(align=True)
+        props = col.operator("object.make_links_data", text="Link Modifires", icon='MOD_ARRAY')
+        props.type = 'MODIFIERS'
 
         layout.row().separator()
 
